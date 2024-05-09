@@ -17,45 +17,42 @@ class RedBlack {
 		node* x = (node*) calloc( 1, sizeof(node) );
 		x->elem = num;
 		x->isRed = true;
-
+		
+//		cout << "TEST0" << endl;
 		if (root == NULL) {
 			x->isRed = false;
 			root = x;
 		} else {
 			node* y = search(root, num);
-		
+//			cout << "TEST2" << endl;
 			if (y->elem > num)
 				y->left = x;
 			else
 				y->right = x;
 			
 			x->parent = y;
-			
-			if (y->isRed) {
-				node* y = x->parent;
-				node* z = y->parent;
-				node* s = z->left == y ? z->right : z->left;
-
-				if (s == NULL || s->isRed == false) {
-					// case 1
-					restructure(x);
-				} else {
-					checkCaseTwoViolation(y);
-				}
-			}
+			checkViolation(x);
 		}
 		
 		size++;
 	}
 	
-	void checkCaseTwoViolation(node* y) {
-		node* z = y->parent;
-		node* s = z->left == y ? z->right : z->left;
-		if (s->isRed) {
-			recolor(y, s, z);
+	void checkViolation(node* x) {
+		node* y = x->parent;
+		if (y && y->isRed) {
+			node* z = y->parent;
+			node* s = z->left == y ? z->right : z->left;
+
+			if (s == NULL || s->isRed == false) {
+				restructure(x);
+				y->isRed = false;
+				x->isRed = true;
+				z->isRed = true;
+			} else if (z != NULL && s->isRed){
+				recolor(y, s, z);
+				checkViolation(z);
+			}
 		}
-		
-		checkCaseTwoViolation(z);
 	}
 	
 	void recolor(node* y, node* s, node* z) {
@@ -83,9 +80,9 @@ class RedBlack {
 			z = y->parent;
 			
 		if (z->right == y && y->right == x) {
-			zigleft(x);
+			zigleft(y);
 		} else if (z->left == y && y->left == x) {
-			zigright(x);
+			zigright(y);
 		} else if (z->right == y) {
 			zigright(x);
 			zigleft(x);
